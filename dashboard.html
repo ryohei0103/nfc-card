@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイページ - NFC電子名刺</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-header">
+  <div class="brand">📇 マイ名刺</div>
+  <button class="btn ghost small" id="logout-btn">ログアウト</button>
+</div>
+
+<!-- 公開URL & 公開設定 -->
+<div class="card">
+  <div class="switch-row">
+    <div>
+      <h3 style="font-size:15px;">ページを公開する</h3>
+      <div class="field .hint" style="font-size:12px; color:var(--text-dim);">オフにすると誰からも見えなくなります</div>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="publish-toggle" checked>
+      <span class="track"></span>
+    </label>
+  </div>
+  <div class="divider"></div>
+  <div class="copy-row">
+    <span id="public-url-text">-</span>
+    <button class="btn small secondary" id="copy-url-btn">コピー</button>
+  </div>
+  <div style="display:flex; gap:8px; margin-top:10px;">
+    <a class="btn secondary btn-block" id="open-public-link" href="#" target="_blank" style="text-align:center;">プレビューを開く</a>
+  </div>
+</div>
+
+<!-- プロフィール編集 -->
+<div class="card">
+  <h3>プロフィール</h3>
+  <form id="profile-form">
+    <div class="avatar-upload">
+      <img id="avatar-preview" class="avatar-preview" src="" alt="">
+      <div>
+        <input type="file" id="avatar-input" accept="image/*" style="display:none;">
+        <button type="button" class="btn secondary small" id="avatar-btn">画像を選ぶ</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="slug">公開URL（半角英数・ハイフン、3〜40文字）</label>
+      <div class="url-prefix" id="slug-prefix"></div>
+      <input type="text" id="slug" required pattern="[a-z0-9\-]{3,40}" placeholder="yourname">
+      <div class="hint" id="slug-msg"></div>
+    </div>
+
+    <div class="field">
+      <label for="display_name">お名前</label>
+      <input type="text" id="display_name" required maxlength="60">
+    </div>
+
+    <div class="field">
+      <label for="title">肩書き・一言</label>
+      <input type="text" id="title" maxlength="80" placeholder="例）デザイナー / エンジニア">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="phone">電話番号</label>
+        <input type="tel" id="phone" maxlength="30">
+      </div>
+      <div class="field">
+        <label for="email_field">メールアドレス</label>
+        <input type="email" id="email_field" maxlength="120">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <label style="font-size:13px; font-weight:600; color:var(--text-dim);">SNS・リンク</label>
+    <div id="links-list" style="margin-top:8px;"></div>
+    <button type="button" class="btn ghost small" id="add-link-btn">＋ リンクを追加</button>
+
+    <div class="divider"></div>
+
+    <button type="submit" class="btn btn-block" id="save-profile-btn">保存する</button>
+    <div class="msg" id="profile-msg"></div>
+  </form>
+</div>
+
+<!-- デコレーション -->
+<div class="card">
+  <h3>ページのデコレーション</h3>
+
+  <label style="font-size:13px; font-weight:600; color:var(--text-dim);">壁紙</label>
+  <div class="swatch-grid" id="wallpaper-grid" style="margin-top:8px;"></div>
+  <input type="file" id="wallpaper-input" accept="image/*" style="display:none;">
+  <button type="button" class="btn ghost small" id="wallpaper-upload-btn">画像をアップロード</button>
+
+  <div class="divider"></div>
+
+  <label style="font-size:13px; font-weight:600; color:var(--text-dim);">アクセントカラー</label>
+  <div style="margin-top:8px;">
+    <input type="color" id="accent-color" value="#5b5bf0" style="width:56px; height:36px; border:none; border-radius:8px; cursor:pointer;">
+  </div>
+
+  <div class="divider"></div>
+
+  <label style="font-size:13px; font-weight:600; color:var(--text-dim);">キャラクター（ステッカー）</label>
+  <div class="sticker-grid" id="sticker-grid" style="margin-top:8px;"></div>
+
+  <div class="divider"></div>
+  <button type="button" class="btn btn-block" id="save-theme-btn">デコレーションを保存</button>
+  <div class="msg" id="theme-msg"></div>
+</div>
+
+<!-- NFC書き込み -->
+<div class="card">
+  <h3>NFCカードに書き込む</h3>
+  <p style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+    Androidの対応ブラウザ（Chrome）では、NFCタグに公開ページのURLを直接書き込めます。書き込んだカードにスマホをかざすと、このページが開きます。
+  </p>
+  <button type="button" class="btn btn-block" id="nfc-write-btn">NFCタグに書き込む</button>
+  <div class="nfc-status" id="nfc-status"></div>
+</div>
+
+<!-- アクセス解析 -->
+<div class="card">
+  <h3>アクセス解析</h3>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="num" id="stat-views-total">-</div><div class="label">総アクセス数</div></div>
+    <div class="stat-box"><div class="num" id="stat-views-7d">-</div><div class="label">直近7日</div></div>
+    <div class="stat-box"><div class="num" id="stat-contacts">-</div><div class="label">連絡先保存数</div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
