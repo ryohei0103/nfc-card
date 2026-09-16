@@ -14,7 +14,20 @@ let qrInstance = null;
     .maybeSingle();
 
   renderQRCode(profile?.slug || '');
+  switchTab('share');
 })();
+
+// ---------- タブ切り替え ----------
+function switchTab(name) {
+  el('tab-share').style.display = name === 'share' ? '' : 'none';
+  el('tab-scan').style.display = name === 'scan' ? '' : 'none';
+  el('tab-btn-share').classList.toggle('active', name === 'share');
+  el('tab-btn-scan').classList.toggle('active', name === 'scan');
+  if (name !== 'scan') stopScan();
+}
+
+el('tab-btn-share').addEventListener('click', () => switchTab('share'));
+el('tab-btn-scan').addEventListener('click', () => switchTab('scan'));
 
 function renderQRCode(slug) {
   const wrap = el('qr-wrap');
