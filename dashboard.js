@@ -47,7 +47,6 @@ function emptyProfile(userId) {
 
   populateForm();
   renderWallpaperGrid();
-  renderStickerGrid();
   if (currentProfile.id) loadStats();
 })();
 
@@ -288,23 +287,6 @@ el('wallpaper-input').addEventListener('change', async (e) => {
     alert('壁紙のアップロードに失敗しました: ' + err.message);
   }
 });
-
-// ---------- デコレーション: ステッカー ----------
-function renderStickerGrid() {
-  const grid = el('sticker-grid');
-  grid.innerHTML = '';
-  STICKER_PRESETS.forEach((s) => {
-    const item = document.createElement('div');
-    item.className = 'sticker-item';
-    item.textContent = s === 'なし' ? '—' : s;
-    if (currentProfile.theme.sticker === s) item.classList.add('selected');
-    item.addEventListener('click', () => {
-      currentProfile.theme.sticker = s;
-      renderStickerGrid();
-    });
-    grid.appendChild(item);
-  });
-}
 
 el('accent-color').addEventListener('input', () => {
   currentProfile.theme.accent = el('accent-color').value;

@@ -26,15 +26,11 @@ const WALLPAPER_PRESETS = [
   { id: 'mint', label: 'ミント', value: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
 ];
 
-// キャラクター（ステッカー）プリセット
-const STICKER_PRESETS = ['なし', '🐱', '🐶', '🐰', '🦊', '🐻', '🐼', '🦁', '🐨', '🌸', '⭐️', '🌈', '🔥', '✨', '🎮', '🎵', '📷', '☕️'];
-
 function defaultTheme() {
   return {
     bg_type: 'preset',
     bg_value: WALLPAPER_PRESETS[0].value,
     accent: '#5b5bf0',
-    sticker: 'なし',
   };
 }
 

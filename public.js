@@ -43,9 +43,6 @@
     card.className = 'namecard';
     applyThemeToCard(card, theme);
 
-    const stickerHtml = theme.sticker && theme.sticker !== 'なし'
-      ? `<div class="namecard-sticker">${escapeHtml(theme.sticker)}</div>` : '';
-
     const avatarSrc = p.avatar_url || placeholderAvatar();
 
     const linksHtml = links.map((l) => {
@@ -61,7 +58,6 @@
       ? `<a class="namecard-link" href="mailto:${escapeHtml(p.email)}"><span class="icon">✉️</span><span>${escapeHtml(p.email)}</span></a>` : '';
 
     card.innerHTML = `
-      ${stickerHtml}
       <img class="avatar-preview" src="${escapeHtml(avatarSrc)}" alt="">
       <div class="name">${escapeHtml(p.display_name || '')}</div>
       ${p.title ? `<div class="title">${escapeHtml(p.title)}</div>` : ''}

@@ -28,7 +28,7 @@ files/
 
 1. `index.html` で新規登録 → ログイン
 2. `dashboard.html` でプロフィール（名前・肩書き・SNSリンク・アバター）を入力し「保存する」
-3. 「ページのデコレーション」で壁紙（プリセット or 画像アップロード）・アクセントカラー・キャラクターステッカーを選んで保存
+3. 「ページのデコレーション」で壁紙（プリセット or 画像アップロード）・アクセントカラーを選んで保存
 4. 表示された公開URL（`p.html?u=スラッグ`）をコピー、または「プレビューを開く」で確認
 5. 「NFCタグに書き込む」（Android Chromeのみ対応。iPhoneなど非対応環境では表示されるURLを「NFC Tools」等のアプリで手動書き込み）
 
@@ -53,7 +53,7 @@ files/
 `config.js` の anon key はクライアントに公開される前提の値です（RLSで保護されるので安全です）。
 
 主な改修ポイントの見取り図:
-- `common.js` の `WALLPAPER_PRESETS` / `STICKER_PRESETS` / `LINK_TYPES` … デコレーションやリンク種類の選択肢
+- `common.js` の `WALLPAPER_PRESETS` / `LINK_TYPES` … デコレーションやリンク種類の選択肢
 - `dashboard.js` の `persistProfile()` … プロフィール・デコレーションの保存ロジック（`profiles`テーブルへのupsert）
 - `public.js` の `renderCard()` … 公開ページの描画ロジック
 - QRコード表示、複数ページ切り替え、リンクの並び替えなどは未実装（必要になったら追加してください）
