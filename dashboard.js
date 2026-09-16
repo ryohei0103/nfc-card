@@ -1,7 +1,10 @@
-// dashboard.html: プロフィール編集・デコレーション・NFC書き込み・アクセス解析
+// dashboard.html: 「プロフィール」「QRコード」タブ（プロフィール編集・デコレーション・NFC書き込み・アクセス解析・QR表示/読み取り）
 
 let currentUser = null;
 let currentProfile = null; // { id, user_id, slug, display_name, furigana, company, position, bio, avatar_url, phone, email, links, theme, is_published }
+let qrInstance = null;
+let scanStream = null;
+let scanRAF = null;
 
 const el = (id) => document.getElementById(id);
 
@@ -50,6 +53,7 @@ function emptyProfile(userId) {
 
   populateForm();
   renderWallpaperGrid();
+  renderQRCode();
   if (currentProfile.id) loadStats();
 })();
 
@@ -57,6 +61,19 @@ el('logout-btn').addEventListener('click', async () => {
   await supabaseClient.auth.signOut();
   window.location.href = 'index.html';
 });
+
+// ---------- タブ切り替え ----------
+function switchTab(name) {
+  el('tab-profile').style.display = name === 'profile' ? '' : 'none';
+  el('tab-qr').style.display = name === 'qr' ? '' : 'none';
+  el('tab-btn-profile').classList.toggle('active', name === 'profile');
+  el('tab-btn-qr').classList.toggle('active', name === 'qr');
+  if (name !== 'qr') stopScan();
+}
+
+el('tab-btn-profile').addEventListener('click', () => switchTab('profile'));
+el('tab-btn-qr').addEventListener('click', () => switchTab('qr'));
+switchTab('profile');
 
 // ---------- フォームへの反映 ----------
 function populateForm() {
@@ -89,6 +106,26 @@ function updatePublicUrlDisplay() {
   el('open-public-link').href = slug ? publicUrlFor(slug) : '#';
 }
 el('slug').addEventListener('input', updatePublicUrlDisplay);
+
+function renderQRCode() {
+  const wrap = el('qr-wrap');
+  const msg = el('qr-msg');
+  if (!currentProfile.slug) {
+    wrap.innerHTML = '';
+    qrInstance = null;
+    msg.textContent = '先にプロフィールを保存してください';
+    return;
+  }
+  msg.textContent = '';
+  const url = publicUrlFor(currentProfile.slug);
+  if (qrInstance) {
+    qrInstance.clear();
+    qrInstance.makeCode(url);
+  } else {
+    wrap.innerHTML = '';
+    qrInstance = new QRCode(wrap, { text: url, width: 200, height: 200, colorDark: '#1c1b22', colorLight: '#ffffff' });
+  }
+}
 
 el('copy-url-btn').addEventListener('click', async () => {
   const slug = el('slug').value.trim();
@@ -203,6 +240,7 @@ el('profile-form').addEventListener('submit', async (e) => {
     msg.textContent = '保存しました';
     msg.className = 'msg success';
     updatePublicUrlDisplay();
+    renderQRCode();
     if (!currentProfile._statsLoaded) { loadStats(); currentProfile._statsLoaded = true; }
   } catch (err) {
     if (err.code === '23505' || /duplicate key/.test(err.message || '')) {
@@ -349,6 +387,73 @@ el('nfc-write-btn').addEventListener('click', async () => {
     status.textContent = '書き込みに失敗しました: ' + err.message;
   }
 });
+
+// ---------- QRコードを読み取る ----------
+el('scan-start-btn').addEventListener('click', async () => {
+  const msg = el('scan-msg');
+  msg.textContent = '';
+  msg.className = 'msg';
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch (err) {
+    msg.textContent = 'カメラを使用できませんでした: ' + err.message;
+    msg.className = 'msg error';
+    return;
+  }
+  const video = el('scan-video');
+  video.srcObject = scanStream;
+  video.style.display = '';
+  await video.play();
+  el('scan-start-btn').style.display = 'none';
+  el('scan-stop-btn').style.display = '';
+  scanLoop();
+});
+
+el('scan-stop-btn').addEventListener('click', stopScan);
+
+function scanLoop() {
+  const video = el('scan-video');
+  const canvas = el('scan-canvas');
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code && code.data) {
+      onQrDetected(code.data);
+      return;
+    }
+  }
+  scanRAF = requestAnimationFrame(scanLoop);
+}
+
+function onQrDetected(text) {
+  stopScan();
+  const msg = el('scan-msg');
+  let url = null;
+  try { url = new URL(text); } catch (_) { /* not a URL */ }
+  if (url && (url.protocol === 'http:' || url.protocol === 'https:')) {
+    msg.innerHTML = `名刺ページが見つかりました: <a href="${escapeHtml(url.href)}" target="_blank" rel="noopener">開く</a>`;
+    msg.className = 'msg success';
+  } else {
+    msg.textContent = '読み取った内容はURLではありませんでした: ' + text;
+    msg.className = 'msg error';
+  }
+}
+
+function stopScan() {
+  if (scanRAF) cancelAnimationFrame(scanRAF);
+  scanRAF = null;
+  if (scanStream) {
+    scanStream.getTracks().forEach((t) => t.stop());
+    scanStream = null;
+  }
+  el('scan-video').style.display = 'none';
+  el('scan-start-btn').style.display = '';
+  el('scan-stop-btn').style.display = 'none';
+}
 
 // ---------- アクセス解析 ----------
 async function loadStats() {
