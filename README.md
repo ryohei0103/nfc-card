@@ -8,20 +8,22 @@ NFCカード（またはQR/URL共有）でプロフィールページに案内�
 files/
 ├── index.html       ログイン・新規登録
 ├── dashboard.html    マイページ（プロフィール編集・デコレーション・NFC書き込み・解析）
-├── p.html            公開プロフィールページ（誰でも閲覧可、?u=スラッグ）
-├── style.css         見た目（CSS）
-├── config.js          SupabaseのURL・anon keyの設定
-├── common.js           共通ヘルパー（Supabaseクライアント、vCard生成、テーマ適用）
-├── auth.js              index.html のロジック
-├── dashboard.js          dashboard.html のロジック
-├── public.js             p.html のロジック
-└── schema.sql             Supabaseに適用済みのテーブル・RLS・Storage定義
+├── qr.html            QRコード表示・読み取り専用ページ
+├── p.html              公開プロフィールページ（誰でも閲覧可、?u=スラッグ）
+├── style.css             見た目（CSS）
+├── config.js               SupabaseのURL・anon keyの設定
+├── common.js                共通ヘルパー（Supabaseクライアント、vCard生成、テーマ適用）
+├── auth.js                   index.html のロジック
+├── dashboard.js                dashboard.html のロジック
+├── qr.js                        qr.html のロジック
+├── public.js                     p.html のロジック
+└── schema.sql                     Supabaseに適用済みのテーブル・RLS・Storage定義
 ```
 
 依存はCDN経由のみです（各HTML内で読み込み済み）。
 - `@supabase/supabase-js@2`（Supabaseクライアント）
-- `qrcodejs`（自分の名刺ページのQRコード生成、dashboard.htmlのみ）
-- `jsQR`（カメラ映像からのQRコード読み取り、dashboard.htmlのみ）
+- `qrcodejs`（自分の名刺ページのQRコード生成、qr.htmlのみ）
+- `jsQR`（カメラ映像からのQRコード読み取り、qr.htmlのみ）
 - Google Fonts（Zen Kaku Gothic New / Noto Sans JP）
 
 ビルドツールは使っていません。ただし **NFC書き込み機能はHTTPS配信が必須**（Web NFC APIの制約）なので、Vercel / Netlify / GitHub Pages などにデプロイして使ってください（`index.html`をfile://で開くだけでも他の機能は一通り動作します）。
@@ -29,12 +31,11 @@ files/
 ## 使い方
 
 1. `index.html` で新規登録 → ログイン
-2. `dashboard.html` でプロフィール（名前・肩書き・SNSリンク・アバター）を入力し「保存する」
+2. `dashboard.html` でプロフィール（名前・ふりがな・会社名・役職・自己紹介・電話番号・メールアドレス・SNSリンク・アバター）を入力し「保存する」
 3. 「ページのデコレーション」で壁紙（プリセット or 画像アップロード）・アクセントカラーを選んで保存
 4. 表示された公開URL（`p.html?u=スラッグ`）をコピー、または「プレビューを開く」で確認
 5. 「NFCタグに書き込む」（Android Chromeのみ対応。iPhoneなど非対応環境では表示されるURLを「NFC Tools」等のアプリで手動書き込み）
-6. 「QRコードで共有」に自分の公開URLのQRコードが自動表示される（NFC非対応端末向けの代替共有手段）
-7. 「QRコードを読み取る」の「スキャン開始」でカメラを起動し、相手の名刺QRコードを読み取ると相手の公開ページへのリンクが表示される（カメラ利用はHTTPS環境が必須）
+6. 「QRコード」→`qr.html`で、自分の公開URLのQRコード表示（NFC非対応端末向けの代替共有手段）と、カメラで相手のQRコードを読み取って相手の公開ページへ移動する機能が使える（カメラ利用はHTTPS環境が必須）
 
 ## Supabase
 
@@ -60,5 +61,5 @@ files/
 - `common.js` の `WALLPAPER_PRESETS` / `LINK_TYPES` … デコレーションやリンク種類の選択肢
 - `dashboard.js` の `persistProfile()` … プロフィール・デコレーションの保存ロジック（`profiles`テーブルへのupsert）
 - `public.js` の `renderCard()` … 公開ページの描画ロジック
-- `dashboard.js` の `renderQRCode()` / QRコードを読み取る節（`scanLoop()` など） … QR表示・スキャンのロジック
+- `qr.js` の `renderQRCode()` / `scanLoop()` など … QR表示・スキャンのロジック
 - 複数ページ切り替え、リンクの並び替えなどは未実装（必要になったら追加してください）

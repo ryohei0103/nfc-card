@@ -62,8 +62,24 @@
     </div>
 
     <div class="field">
-      <label for="title">肩書き・一言</label>
-      <input type="text" id="title" maxlength="80" placeholder="例）デザイナー / エンジニア">
+      <label for="furigana">ふりがな</label>
+      <input type="text" id="furigana" maxlength="60" placeholder="例）やまだ たろう">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="company">会社名</label>
+        <input type="text" id="company" maxlength="80">
+      </div>
+      <div class="field">
+        <label for="position">役職</label>
+        <input type="text" id="position" maxlength="80" placeholder="例）エンジニア">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="bio">自己紹介（一言）</label>
+      <input type="text" id="bio" maxlength="120">
     </div>
 
     <div class="row">
@@ -121,27 +137,13 @@
   <div class="nfc-status" id="nfc-status"></div>
 </div>
 
-<!-- QRコードで共有 -->
+<!-- QRコード -->
 <div class="card">
-  <h3>QRコードで共有</h3>
+  <h3>QRコード</h3>
   <p style="font-size:13px; color:var(--text-dim); line-height:1.7;">
-    相手にカメラで読み取ってもらうと、あなたの公開ページが開きます。iPhoneなどNFC非対応の端末でも使えます。
+    自分の名刺のQRコード表示、相手のQRコード読み取りはこちらから。
   </p>
-  <div id="qr-wrap" style="display:flex; justify-content:center; padding:12px 0;"></div>
-  <div class="msg" id="qr-msg" style="text-align:center;"></div>
-</div>
-
-<!-- QRコードを読み取る -->
-<div class="card">
-  <h3>QRコードを読み取る</h3>
-  <p style="font-size:13px; color:var(--text-dim); line-height:1.7;">
-    相手の名刺のQRコードをカメラで読み取ると、そのまま相手の公開ページに移動します。
-  </p>
-  <video id="scan-video" playsinline style="width:100%; border-radius:12px; background:#000; display:none;"></video>
-  <canvas id="scan-canvas" style="display:none;"></canvas>
-  <button type="button" class="btn btn-block" id="scan-start-btn">スキャン開始</button>
-  <button type="button" class="btn secondary btn-block" id="scan-stop-btn" style="display:none; margin-top:8px;">スキャン停止</button>
-  <div class="msg" id="scan-msg"></div>
+  <a class="btn btn-block" href="qr.html" style="text-align:center;">QRコードを開く</a>
 </div>
 
 <!-- アクセス解析 -->
@@ -155,8 +157,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="config.js"></script>
 <script src="common.js"></script>
 <script src="dashboard.js"></script>

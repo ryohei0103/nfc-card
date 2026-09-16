@@ -57,10 +57,14 @@
     const emailHtml = p.email
       ? `<a class="namecard-link" href="mailto:${escapeHtml(p.email)}"><span class="icon">✉️</span><span>${escapeHtml(p.email)}</span></a>` : '';
 
+    const companyPosition = [p.company, p.position].filter(Boolean).join(' / ');
+
     card.innerHTML = `
       <img class="avatar-preview" src="${escapeHtml(avatarSrc)}" alt="">
       <div class="name">${escapeHtml(p.display_name || '')}</div>
-      ${p.title ? `<div class="title">${escapeHtml(p.title)}</div>` : ''}
+      ${p.furigana ? `<div class="furigana">${escapeHtml(p.furigana)}</div>` : ''}
+      ${companyPosition ? `<div class="title">${escapeHtml(companyPosition)}</div>` : ''}
+      ${p.bio ? `<div class="bio">${escapeHtml(p.bio)}</div>` : ''}
       <div class="namecard-panel">
         <div class="namecard-links">${phoneHtml}${emailHtml}${linksHtml}</div>
         <div class="namecard-actions">

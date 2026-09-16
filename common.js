@@ -50,7 +50,10 @@ function publicUrlFor(slug) {
 function downloadVCard(profile) {
   const lines = ['BEGIN:VCARD', 'VERSION:3.0'];
   lines.push(`FN:${(profile.display_name || '').replace(/\n/g, ' ')}`);
-  if (profile.title) lines.push(`TITLE:${profile.title.replace(/\n/g, ' ')}`);
+  if (profile.furigana) lines.push(`X-PHONETIC-FIRST-NAME:${profile.furigana.replace(/\n/g, ' ')}`);
+  if (profile.company) lines.push(`ORG:${profile.company.replace(/\n/g, ' ')}`);
+  if (profile.position) lines.push(`TITLE:${profile.position.replace(/\n/g, ' ')}`);
+  if (profile.bio) lines.push(`NOTE:${profile.bio.replace(/\n/g, ' ')}`);
   if (profile.phone) lines.push(`TEL;TYPE=CELL:${profile.phone}`);
   if (profile.email) lines.push(`EMAIL:${profile.email}`);
   lines.push(`URL:${publicUrlFor(profile.slug)}`);

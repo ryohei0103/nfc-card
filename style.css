@@ -286,7 +286,9 @@ h1, h2, h3 { margin: 0 0 8px; }
   margin: 0 auto 14px;
 }
 .namecard .name { font-size: 22px; font-weight: 700; }
-.namecard .title { font-size: 14px; opacity: 0.9; margin-top: 4px; }
+.namecard .furigana { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+.namecard .title { font-size: 14px; opacity: 0.9; margin-top: 6px; }
+.namecard .bio { font-size: 13px; opacity: 0.9; margin-top: 8px; line-height: 1.6; }
 
 .namecard-panel {
   background: rgba(255,255,255,0.94);
