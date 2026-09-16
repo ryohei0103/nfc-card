@@ -18,8 +18,10 @@ files/
 └── schema.sql             Supabaseに適用済みのテーブル・RLS・Storage定義
 ```
 
-依存はCDN経由の1つだけです（各HTML内で読み込み済み）。
+依存はCDN経由のみです（各HTML内で読み込み済み）。
 - `@supabase/supabase-js@2`（Supabaseクライアント）
+- `qrcodejs`（自分の名刺ページのQRコード生成、dashboard.htmlのみ）
+- `jsQR`（カメラ映像からのQRコード読み取り、dashboard.htmlのみ）
 - Google Fonts（Zen Kaku Gothic New / Noto Sans JP）
 
 ビルドツールは使っていません。ただし **NFC書き込み機能はHTTPS配信が必須**（Web NFC APIの制約）なので、Vercel / Netlify / GitHub Pages などにデプロイして使ってください（`index.html`をfile://で開くだけでも他の機能は一通り動作します）。
@@ -31,6 +33,8 @@ files/
 3. 「ページのデコレーション」で壁紙（プリセット or 画像アップロード）・アクセントカラーを選んで保存
 4. 表示された公開URL（`p.html?u=スラッグ`）をコピー、または「プレビューを開く」で確認
 5. 「NFCタグに書き込む」（Android Chromeのみ対応。iPhoneなど非対応環境では表示されるURLを「NFC Tools」等のアプリで手動書き込み）
+6. 「QRコードで共有」に自分の公開URLのQRコードが自動表示される（NFC非対応端末向けの代替共有手段）
+7. 「QRコードを読み取る」の「スキャン開始」でカメラを起動し、相手の名刺QRコードを読み取ると相手の公開ページへのリンクが表示される（カメラ利用はHTTPS環境が必須）
 
 ## Supabase
 
@@ -56,4 +60,5 @@ files/
 - `common.js` の `WALLPAPER_PRESETS` / `LINK_TYPES` … デコレーションやリンク種類の選択肢
 - `dashboard.js` の `persistProfile()` … プロフィール・デコレーションの保存ロジック（`profiles`テーブルへのupsert）
 - `public.js` の `renderCard()` … 公開ページの描画ロジック
-- QRコード表示、複数ページ切り替え、リンクの並び替えなどは未実装（必要になったら追加してください）
+- `dashboard.js` の `renderQRCode()` / QRコードを読み取る節（`scanLoop()` など） … QR表示・スキャンのロジック
+- 複数ページ切り替え、リンクの並び替えなどは未実装（必要になったら追加してください）
