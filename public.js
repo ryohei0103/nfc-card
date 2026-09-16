@@ -25,8 +25,11 @@
 
   const source = (params.get('src') || 'direct').toLowerCase();
 
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  const isOwner = session?.user?.id === profile.user_id;
+
   renderCard(profile);
-  logView(profile.id, source);
+  if (!isOwner) logView(profile.id, source);
 
   function showNotFound() {
     loading.textContent = 'このページは見つかりませんでした。';
