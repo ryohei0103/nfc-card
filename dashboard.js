@@ -55,7 +55,6 @@ function emptyProfile(userId) {
   renderWallpaperGrid();
   renderAccentGrid();
   renderQRCode();
-  if (currentProfile.id) loadStats();
 })();
 
 el('logout-btn').addEventListener('click', async () => {
@@ -67,13 +66,17 @@ el('logout-btn').addEventListener('click', async () => {
 function switchTab(name) {
   el('tab-profile').style.display = name === 'profile' ? '' : 'none';
   el('tab-qr').style.display = name === 'qr' ? '' : 'none';
+  el('tab-stats').style.display = name === 'stats' ? '' : 'none';
   el('tab-btn-profile').classList.toggle('active', name === 'profile');
   el('tab-btn-qr').classList.toggle('active', name === 'qr');
+  el('tab-btn-stats').classList.toggle('active', name === 'stats');
   if (name !== 'qr') stopScan();
+  if (name === 'stats') loadStats();
 }
 
 el('tab-btn-profile').addEventListener('click', () => switchTab('profile'));
 el('tab-btn-qr').addEventListener('click', () => switchTab('qr'));
+el('tab-btn-stats').addEventListener('click', () => switchTab('stats'));
 switchTab('profile');
 
 // ---------- フォームへの反映 ----------
@@ -117,7 +120,7 @@ function renderQRCode() {
     return;
   }
   msg.textContent = '';
-  const url = publicUrlFor(currentProfile.slug);
+  const url = publicUrlFor(currentProfile.slug, 'qr');
   if (qrInstance) {
     qrInstance.clear();
     qrInstance.makeCode(url);
@@ -241,7 +244,6 @@ el('profile-form').addEventListener('submit', async (e) => {
     msg.className = 'msg success';
     updatePublicUrlDisplay();
     renderQRCode();
-    if (!currentProfile._statsLoaded) { loadStats(); currentProfile._statsLoaded = true; }
   } catch (err) {
     if (err.code === '23505' || /duplicate key/.test(err.message || '')) {
       msg.textContent = 'このURLはすでに使われています。別のURLをお試しください。';
@@ -403,7 +405,7 @@ el('nfc-write-btn').addEventListener('click', async () => {
     status.textContent = '先にプロフィールを保存してください';
     return;
   }
-  const url = publicUrlFor(currentProfile.slug);
+  const url = publicUrlFor(currentProfile.slug, 'nfc');
 
   if (!('NDEFReader' in window)) {
     status.innerHTML =
@@ -493,12 +495,16 @@ function stopScan() {
 // ---------- アクセス解析 ----------
 async function loadStats() {
   if (!currentProfile.id) return;
-  const [{ count: total }, { count: recent }, { count: contacts }] = await Promise.all([
+  const [{ count: total }, { count: recent }, { count: nfcTaps }, { count: linkClicks }, { count: contacts }] = await Promise.all([
     supabaseClient.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', currentProfile.id),
     supabaseClient.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', currentProfile.id).gte('viewed_at', new Date(Date.now() - 7 * 86400000).toISOString()),
+    supabaseClient.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', currentProfile.id).eq('source', 'nfc'),
+    supabaseClient.from('link_clicks').select('*', { count: 'exact', head: true }).eq('profile_id', currentProfile.id),
     supabaseClient.from('contact_saves').select('*', { count: 'exact', head: true }).eq('profile_id', currentProfile.id),
   ]);
   el('stat-views-total').textContent = total ?? 0;
   el('stat-views-7d').textContent = recent ?? 0;
+  el('stat-nfc-taps').textContent = nfcTaps ?? 0;
+  el('stat-link-clicks').textContent = linkClicks ?? 0;
   el('stat-contacts').textContent = contacts ?? 0;
 }

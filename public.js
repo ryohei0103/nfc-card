@@ -23,8 +23,10 @@
     return;
   }
 
+  const source = (params.get('src') || 'direct').toLowerCase();
+
   renderCard(profile);
-  logView(profile.id);
+  logView(profile.id, source);
 
   function showNotFound() {
     loading.textContent = 'このページは見つかりませんでした。';
@@ -47,7 +49,7 @@
 
     const linksHtml = links.map((l) => {
       const meta = linkTypes[l.type] || linkTypes.other;
-      return `<a class="namecard-link" href="${escapeHtml(l.url)}" target="_blank" rel="noopener">
+      return `<a class="namecard-link" href="${escapeHtml(l.url)}" target="_blank" rel="noopener" data-link-type="${escapeHtml(l.type || 'other')}">
         <span class="icon">${meta.icon}</span><span>${escapeHtml(l.label || meta.label)}</span>
       </a>`;
     }).join('');
@@ -79,6 +81,10 @@
       downloadVCard(p);
       logContactSave(p.id);
     });
+
+    card.querySelectorAll('[data-link-type]').forEach((a) => {
+      a.addEventListener('click', () => logLinkClick(p.id, a.dataset.linkType));
+    });
   }
 
   function placeholderAvatar() {
@@ -87,11 +93,15 @@
     );
   }
 
-  async function logView(profileId) {
-    try { await supabaseClient.from('profile_views').insert({ profile_id: profileId }); } catch (_) {}
+  async function logView(profileId, source) {
+    try { await supabaseClient.from('profile_views').insert({ profile_id: profileId, source }); } catch (_) {}
   }
 
   async function logContactSave(profileId) {
     try { await supabaseClient.from('contact_saves').insert({ profile_id: profileId }); } catch (_) {}
+  }
+
+  async function logLinkClick(profileId, linkType) {
+    try { await supabaseClient.from('link_clicks').insert({ profile_id: profileId, link_type: linkType }); } catch (_) {}
   }
 })();

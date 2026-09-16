@@ -69,7 +69,8 @@ create policy "profiles_delete_owner"
 create table public.profile_views (
   id bigserial primary key,
   profile_id uuid not null references public.profiles(id) on delete cascade,
-  viewed_at timestamptz not null default now()
+  viewed_at timestamptz not null default now(),
+  source text not null default 'direct'
 );
 
 create index profile_views_profile_id_idx on public.profile_views (profile_id, viewed_at desc);
@@ -110,6 +111,32 @@ create policy "contact_saves_insert_anyone"
 
 create policy "contact_saves_select_owner"
   on public.contact_saves for select
+  using (
+    exists (select 1 from public.profiles p where p.id = profile_id and p.user_id = auth.uid())
+  );
+
+-- =========================================
+-- link_clicks: 公開ページのSNS・リンクのクリックログ
+-- =========================================
+create table public.link_clicks (
+  id bigserial primary key,
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  link_type text not null default 'other',
+  clicked_at timestamptz not null default now()
+);
+
+create index link_clicks_profile_id_idx on public.link_clicks (profile_id, clicked_at desc);
+
+alter table public.link_clicks enable row level security;
+
+create policy "link_clicks_insert_anyone"
+  on public.link_clicks for insert
+  with check (
+    exists (select 1 from public.profiles p where p.id = profile_id and p.is_published = true)
+  );
+
+create policy "link_clicks_select_owner"
+  on public.link_clicks for select
   using (
     exists (select 1 from public.profiles p where p.id = profile_id and p.user_id = auth.uid())
   );

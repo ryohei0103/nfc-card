@@ -52,9 +52,10 @@ function escapeHtml(str) {
   })[c]);
 }
 
-function publicUrlFor(slug) {
+function publicUrlFor(slug, source) {
   const base = new URL('p.html', window.location.href);
   base.searchParams.set('u', slug);
+  if (source) base.searchParams.set('src', source);
   return base.toString();
 }
 
