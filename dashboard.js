@@ -53,6 +53,7 @@ function emptyProfile(userId) {
 
   populateForm();
   renderWallpaperGrid();
+  renderAccentGrid();
   renderQRCode();
   if (currentProfile.id) loadStats();
 })();
@@ -87,7 +88,6 @@ function populateForm() {
   el('email_field').value = currentProfile.email || '';
   el('avatar-preview').src = currentProfile.avatar_url || placeholderAvatar();
   el('publish-toggle').checked = currentProfile.is_published !== false;
-  el('accent-color').value = currentProfile.theme.accent || '#5b5bf0';
 
   renderLinks();
   updatePublicUrlDisplay();
@@ -338,8 +338,43 @@ el('wallpaper-input').addEventListener('change', async (e) => {
   }
 });
 
-el('accent-color').addEventListener('input', () => {
-  currentProfile.theme.accent = el('accent-color').value;
+// ---------- デコレーション: アクセントカラー ----------
+function renderAccentGrid() {
+  const grid = el('accent-grid');
+  grid.innerHTML = '';
+  const presetValues = ACCENT_PRESETS.map((p) => p.value);
+  ACCENT_PRESETS.forEach((preset) => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch';
+    sw.style.background = preset.value;
+    if (currentProfile.theme.accent === preset.value) sw.classList.add('selected');
+    const label = document.createElement('span');
+    label.className = 'swatch-label';
+    label.textContent = preset.label;
+    sw.appendChild(label);
+    sw.addEventListener('click', () => {
+      currentProfile.theme.accent = preset.value;
+      renderAccentGrid();
+    });
+    grid.appendChild(sw);
+  });
+
+  if (currentProfile.theme.accent && !presetValues.includes(currentProfile.theme.accent)) {
+    const sw = document.createElement('div');
+    sw.className = 'swatch selected';
+    sw.style.background = currentProfile.theme.accent;
+    const label = document.createElement('span');
+    label.className = 'swatch-label';
+    label.textContent = 'カスタム';
+    sw.appendChild(label);
+    grid.appendChild(sw);
+  }
+}
+
+el('accent-custom-btn').addEventListener('click', () => el('accent-color-input').click());
+el('accent-color-input').addEventListener('input', () => {
+  currentProfile.theme.accent = el('accent-color-input').value;
+  renderAccentGrid();
 });
 
 el('save-theme-btn').addEventListener('click', async () => {

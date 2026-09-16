@@ -26,6 +26,18 @@ const WALLPAPER_PRESETS = [
   { id: 'mint', label: 'ミント', value: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
 ];
 
+// アクセントカラー プリセット
+const ACCENT_PRESETS = [
+  { id: 'indigo', label: 'インディゴ', value: '#5b5bf0' },
+  { id: 'pink', label: 'ピンク', value: '#ff6b81' },
+  { id: 'red', label: 'レッド', value: '#e63950' },
+  { id: 'orange', label: 'オレンジ', value: '#f7971e' },
+  { id: 'green', label: 'グリーン', value: '#2fae60' },
+  { id: 'teal', label: 'ティール', value: '#00c2a8' },
+  { id: 'blue', label: 'ブルー', value: '#2d7ff9' },
+  { id: 'purple', label: 'パープル', value: '#8b5cf6' },
+];
+
 function defaultTheme() {
   return {
     bg_type: 'preset',
