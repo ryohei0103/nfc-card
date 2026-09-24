@@ -126,14 +126,18 @@ h1, h2, h3 { margin: 0 0 8px; }
   max-width: 440px;
   margin-bottom: 16px;
 }
+.tabs {
+  gap: 6px;
+}
 .tabs button {
   flex: 1;
-  padding: 10px;
+  padding: 10px 2px;
+  white-space: nowrap;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   color: var(--text-dim);
 }
@@ -331,3 +335,38 @@ h1, h2, h3 { margin: 0 0 8px; }
 @media (max-width: 420px) {
   .card { padding: 18px; }
 }
+
+/* ---------- 名刺帳 ---------- */
+.saved-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.saved-item:first-child { border-top: none; }
+.saved-item img {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eee;
+  flex: 0 0 auto;
+}
+.saved-item .info { flex: 1; min-width: 0; }
+.saved-item .info .n { font-weight: 700; font-size: 14px; }
+.saved-item .info .s { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-item .actions { display: flex; gap: 6px; flex: 0 0 auto; }
+.scan-result-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafaff;
+}
+.scan-result-box img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #eee; }
+.scan-result-box .info { flex: 1; min-width: 0; }
+.scan-result-box .info .n { font-weight: 700; font-size: 14px; }
+.scan-result-box .info .s { font-size: 12px; color: var(--text-dim); }

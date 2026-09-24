@@ -66,16 +66,20 @@ el('logout-btn').addEventListener('click', async () => {
 function switchTab(name) {
   el('tab-profile').style.display = name === 'profile' ? '' : 'none';
   el('tab-qr').style.display = name === 'qr' ? '' : 'none';
+  el('tab-cards').style.display = name === 'cards' ? '' : 'none';
   el('tab-stats').style.display = name === 'stats' ? '' : 'none';
   el('tab-btn-profile').classList.toggle('active', name === 'profile');
   el('tab-btn-qr').classList.toggle('active', name === 'qr');
+  el('tab-btn-cards').classList.toggle('active', name === 'cards');
   el('tab-btn-stats').classList.toggle('active', name === 'stats');
   if (name !== 'qr') stopScan();
+  if (name === 'cards') loadSavedCards();
   if (name === 'stats') loadStats();
 }
 
 el('tab-btn-profile').addEventListener('click', () => switchTab('profile'));
 el('tab-btn-qr').addEventListener('click', () => switchTab('qr'));
+el('tab-btn-cards').addEventListener('click', () => switchTab('cards'));
 el('tab-btn-stats').addEventListener('click', () => switchTab('stats'));
 switchTab('profile');
 
@@ -430,6 +434,7 @@ el('scan-start-btn').addEventListener('click', async () => {
   const msg = el('scan-msg');
   msg.textContent = '';
   msg.className = 'msg';
+  el('scan-result').innerHTML = '';
   try {
     scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
   } catch (err) {
@@ -466,18 +471,111 @@ function scanLoop() {
   scanRAF = requestAnimationFrame(scanLoop);
 }
 
-function onQrDetected(text) {
+async function onQrDetected(text) {
   stopScan();
   const msg = el('scan-msg');
+  const result = el('scan-result');
+  result.innerHTML = '';
   let url = null;
   try { url = new URL(text); } catch (_) { /* not a URL */ }
-  if (url && (url.protocol === 'http:' || url.protocol === 'https:')) {
-    msg.innerHTML = `名刺ページが見つかりました: <a href="${escapeHtml(url.href)}" target="_blank" rel="noopener">開く</a>`;
-    msg.className = 'msg success';
-  } else {
+  if (!url || (url.protocol !== 'http:' && url.protocol !== 'https:')) {
     msg.textContent = '読み取った内容はURLではありませんでした: ' + text;
     msg.className = 'msg error';
+    return;
   }
+
+  const slug = (url.searchParams.get('u') || '').toLowerCase();
+  const { data: card } = slug
+    ? await supabaseClient
+        .from('profiles')
+        .select('id, user_id, slug, display_name, furigana, company, position, avatar_url')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .maybeSingle()
+    : { data: null };
+
+  if (!card) {
+    msg.innerHTML = `名刺ページではありませんでした: <a href="${escapeHtml(url.href)}" target="_blank" rel="noopener">開く</a>`;
+    msg.className = 'msg error';
+    return;
+  }
+
+  msg.textContent = '';
+  msg.className = 'msg';
+  const box = document.createElement('div');
+  box.className = 'scan-result-box';
+  box.innerHTML = `
+    <img src="${escapeHtml(card.avatar_url || placeholderAvatar())}" alt="">
+    <div class="info">
+      <div class="n">${escapeHtml(card.display_name)}</div>
+      <div class="s">${escapeHtml([card.company, card.position].filter(Boolean).join(' / '))}</div>
+    </div>
+    <div class="actions">
+      <a class="btn secondary small" href="${escapeHtml(publicUrlFor(card.slug))}" target="_blank" rel="noopener">開く</a>
+      <button type="button" class="btn small" id="scan-save-btn">保存</button>
+    </div>`;
+  result.appendChild(box);
+
+  box.querySelector('#scan-save-btn').addEventListener('click', async () => {
+    if (card.user_id === currentUser.id) {
+      msg.textContent = '自分の名刺です';
+      msg.className = 'msg error';
+      return;
+    }
+    const { error } = await supabaseClient.from('saved_cards').insert({ user_id: currentUser.id, card_profile_id: card.id });
+    if (error && error.code !== '23505') {
+      msg.textContent = '保存に失敗しました: ' + error.message;
+      msg.className = 'msg error';
+      return;
+    }
+    msg.textContent = error ? 'すでに名刺帳に保存済みです' : '名刺帳に保存しました';
+    msg.className = 'msg success';
+  });
+}
+
+// ---------- 名刺帳 ----------
+async function loadSavedCards() {
+  const list = el('saved-list');
+  const msg = el('saved-msg');
+  msg.textContent = '';
+  const { data, error } = await supabaseClient
+    .from('saved_cards')
+    .select('id, created_at, card:card_profile_id(slug, display_name, furigana, company, position, avatar_url)')
+    .order('created_at', { ascending: false });
+  if (error) {
+    msg.textContent = '読み込みに失敗しました: ' + error.message;
+    msg.className = 'msg error';
+    return;
+  }
+  const rows = (data || []).filter((r) => r.card);
+  if (!rows.length) {
+    list.innerHTML = '';
+    msg.textContent = 'まだ保存した名刺はありません';
+    msg.className = 'msg';
+    return;
+  }
+  list.innerHTML = '';
+  rows.forEach((r) => {
+    const c = r.card;
+    const item = document.createElement('div');
+    item.className = 'saved-item';
+    item.innerHTML = `
+      <img src="${escapeHtml(c.avatar_url || placeholderAvatar())}" alt="">
+      <div class="info">
+        <div class="n">${escapeHtml(c.display_name)}</div>
+        <div class="s">${escapeHtml([c.company, c.position].filter(Boolean).join(' / ') || c.furigana || '')}</div>
+      </div>
+      <div class="actions">
+        <a class="btn secondary small" href="${escapeHtml(publicUrlFor(c.slug))}" target="_blank" rel="noopener">開く</a>
+        <button type="button" class="btn ghost small">削除</button>
+      </div>`;
+    item.querySelector('button').addEventListener('click', async () => {
+      if (!confirm(`${c.display_name} さんの名刺を名刺帳から削除しますか？`)) return;
+      await supabaseClient.from('saved_cards').delete().eq('id', r.id);
+      loadSavedCards();
+    });
+    list.appendChild(item);
+  });
 }
 
 function stopScan() {

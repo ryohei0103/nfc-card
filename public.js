@@ -30,6 +30,7 @@
 
   renderCard(profile);
   if (!isOwner) logView(profile.id, source);
+  if (session && !isOwner) setupSaveCard(profile, session.user.id);
 
   function showNotFound() {
     loading.textContent = 'このページは見つかりませんでした。';
@@ -94,6 +95,20 @@
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#eeeef5"/><text x="50" y="58" font-size="40" text-anchor="middle">🙂</text></svg>'
     );
+  }
+
+  function setupSaveCard(p, userId) {
+    const actions = content.querySelector('.namecard-actions');
+    const btn = document.createElement('button');
+    btn.className = 'btn secondary btn-block';
+    btn.textContent = '名刺帳に保存';
+    btn.addEventListener('click', async () => {
+      const { error } = await supabaseClient.from('saved_cards').insert({ user_id: userId, card_profile_id: p.id });
+      btn.textContent = error && error.code !== '23505' ? '保存に失敗しました' : '名刺帳に保存済み';
+      btn.disabled = !error || error.code === '23505';
+    });
+    actions.style.flexDirection = 'column';
+    actions.appendChild(btn);
   }
 
   async function logView(profileId, source) {

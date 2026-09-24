@@ -142,6 +142,33 @@ create policy "link_clicks_select_owner"
   );
 
 -- =========================================
+-- saved_cards: 名刺帳（読み取り・閲覧して保存した他人の名刺）
+-- =========================================
+create table public.saved_cards (
+  id bigserial primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  card_profile_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (user_id, card_profile_id)
+);
+
+create index saved_cards_user_id_idx on public.saved_cards (user_id, created_at desc);
+
+alter table public.saved_cards enable row level security;
+
+create policy "saved_cards_select_owner"
+  on public.saved_cards for select
+  using (auth.uid() = user_id);
+
+create policy "saved_cards_insert_owner"
+  on public.saved_cards for insert
+  with check (auth.uid() = user_id);
+
+create policy "saved_cards_delete_owner"
+  on public.saved_cards for delete
+  using (auth.uid() = user_id);
+
+-- =========================================
 -- Storage: アバター・壁紙画像
 -- =========================================
 insert into storage.buckets (id, name, public)
