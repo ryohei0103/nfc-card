@@ -540,14 +540,15 @@ async function loadSavedCards() {
   msg.textContent = '';
   const { data, error } = await supabaseClient
     .from('saved_cards')
-    .select('id, created_at, card:card_profile_id(slug, display_name, furigana, company, position, avatar_url)')
-    .order('created_at', { ascending: false });
+    .select('id, created_at, card:card_profile_id(slug, display_name, furigana, company, position, avatar_url)');
   if (error) {
     msg.textContent = '読み込みに失敗しました: ' + error.message;
     msg.className = 'msg error';
     return;
   }
-  const rows = (data || []).filter((r) => r.card);
+  const collator = new Intl.Collator('ja');
+  const sortKey = (c) => c.furigana || c.display_name || '';
+  const rows = (data || []).filter((r) => r.card).sort((a, b) => collator.compare(sortKey(a.card), sortKey(b.card)));
   if (!rows.length) {
     list.innerHTML = '';
     msg.textContent = 'まだ保存した名刺はありません';
