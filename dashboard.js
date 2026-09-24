@@ -229,6 +229,15 @@ el('profile-form').addEventListener('submit', async (e) => {
     return;
   }
 
+  const required = [['display_name', 'お名前'], ['furigana', 'ふりがな'], ['phone', '電話番号']];
+  const missing = required.find(([id]) => !el(id).value.trim());
+  if (missing) {
+    msg.textContent = `${missing[1]}を入力してください`;
+    msg.className = 'msg error';
+    el(missing[0]).focus();
+    return;
+  }
+
   currentProfile.slug = slug;
   currentProfile.display_name = el('display_name').value.trim();
   currentProfile.furigana = el('furigana').value.trim();
